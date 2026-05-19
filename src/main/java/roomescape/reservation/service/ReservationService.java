@@ -4,7 +4,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
-import roomescape.reservation.domain.CustomerName;
+import roomescape.member.domain.Member;
+import roomescape.member.domain.exception.MemberNotFoundException;
+import roomescape.member.repository.MemberRepository;
 import roomescape.reservation.domain.Reservation;
 import roomescape.reservationtime.domain.ReservationTime;
 import roomescape.theme.domain.Theme;
@@ -37,6 +39,7 @@ public class ReservationService {
     private final ReservationRepository reservationRepository;
     private final ReservationTimeRepository reservationTimeRepository;
     private final ThemeRepository themeRepository;
+    private final MemberRepository memberRepository;
     private final Clock clock;
 
     public List<ReservationResponse> getAllReservations() {
@@ -46,8 +49,8 @@ public class ReservationService {
                 .toList();
     }
 
-    public List<ReservationResponse> getReservationsByCustomerName(final String customerName) {
-        return reservationRepository.findAllByCustomerName(CustomerName.from(customerName))
+    public List<ReservationResponse> getReservationsByMemberId(final Long memberId) {
+        return reservationRepository.findAllByMemberId(memberId)
                 .stream()
                 .map(ReservationResponse::from)
                 .toList();
@@ -58,11 +61,12 @@ public class ReservationService {
     }
 
     public ReservationResponse create(final ReservationCreateRequest data) {
+        final Member member = getMember(data.memberId());
         final ReservationTime reservationTime = getReservationTime(data.timeId());
         final Theme theme = getTheme(data.themeId());
 
         final Reservation reservation = Reservation.create(
-                data.name(),
+                member,
                 data.date(),
                 reservationTime,
                 theme,
@@ -171,5 +175,10 @@ public class ReservationService {
     private Theme getTheme(final Long themeId) {
         return themeRepository.findById(themeId)
                 .orElseThrow(ThemeNotFoundException::new);
+    }
+
+    private Member getMember(final Long memberId) {
+        return memberRepository.findById(memberId)
+                .orElseThrow(MemberNotFoundException::new);
     }
 }

@@ -22,11 +22,11 @@ public class ReservationController {
 
     private final ReservationService reservationService;
 
-    @GetMapping(params = "customerName")
-    public ResponseEntity<List<ReservationResponse>> getReservationsByCustomerName(
-            @RequestParam("customerName") String customerName
+    @GetMapping(params = "memberId")
+    public ResponseEntity<List<ReservationResponse>> getReservationsByMemberId(
+            @RequestParam("memberId") Long memberId
     ) {
-        final List<ReservationResponse> results = reservationService.getReservationsByCustomerName(customerName);
+        final List<ReservationResponse> results = reservationService.getReservationsByMemberId(memberId);
         return ResponseEntity.ok(results);
     }
 

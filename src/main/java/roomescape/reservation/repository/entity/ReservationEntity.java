@@ -4,7 +4,7 @@ import java.sql.Date;
 
 public record ReservationEntity(
         Long id,
-        String name,
+        Long memberId,
         Date date,
         Long timeId,
         Long themeId

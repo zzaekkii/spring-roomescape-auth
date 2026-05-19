@@ -56,11 +56,14 @@ INSERT INTO theme (name, description, thumbnail_url) VALUES (
 -- 샘플 사용자
 INSERT INTO member (name, email, password) VALUES ('홍길동', 'hong@example.com', 'password');
 INSERT INTO member (name, email, password) VALUES ('김철수', 'kim@example.com', 'password');
+INSERT INTO member (name, email, password) VALUES ('이영희', 'lee@example.com', 'password');
+INSERT INTO member (name, email, password) VALUES ('박민준', 'park@example.com', 'password');
+INSERT INTO member (name, email, password) VALUES ('최지우', 'choi@example.com', 'password');
 
 -- 샘플 예약 (오늘 날짜 기준 미래 날짜를 고정값으로 넣기 어려우므로 과거 기준 참고용)
 -- 실제 운영 시 날짜를 조정하거나 삭제하세요.
-INSERT INTO reservation (name, date, time_id, theme_id) VALUES ('홍길동', DATEADD('DAY', 1, CURRENT_DATE), 1, 1);
-INSERT INTO reservation (name, date, time_id, theme_id) VALUES ('김철수', DATEADD('DAY', 1, CURRENT_DATE), 3, 2);
-INSERT INTO reservation (name, date, time_id, theme_id) VALUES ('이영희', DATEADD('DAY', 2, CURRENT_DATE), 2, 3);
-INSERT INTO reservation (name, date, time_id, theme_id) VALUES ('박민준', DATEADD('DAY', 3, CURRENT_DATE), 5, 4);
-INSERT INTO reservation (name, date, time_id, theme_id) VALUES ('최지우', DATEADD('DAY', 1, CURRENT_DATE), 4, 1);
+INSERT INTO reservation (member_id, date, time_id, theme_id) VALUES (1, DATEADD('DAY', 1, CURRENT_DATE), 1, 1);
+INSERT INTO reservation (member_id, date, time_id, theme_id) VALUES (2, DATEADD('DAY', 1, CURRENT_DATE), 3, 2);
+INSERT INTO reservation (member_id, date, time_id, theme_id) VALUES (3, DATEADD('DAY', 2, CURRENT_DATE), 2, 3);
+INSERT INTO reservation (member_id, date, time_id, theme_id) VALUES (4, DATEADD('DAY', 3, CURRENT_DATE), 5, 4);
+INSERT INTO reservation (member_id, date, time_id, theme_id) VALUES (5, DATEADD('DAY', 1, CURRENT_DATE), 4, 1);

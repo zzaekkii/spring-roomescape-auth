@@ -1,16 +1,16 @@
-package roomescape.reservation.domain;
+package roomescape.member.domain;
 
-public class CustomerName {
+public class MemberName {
 
     private final String name;
 
-    private CustomerName(final String value) {
+    private MemberName(final String value) {
         validate(value);
         this.name = value;
     }
 
-    public static CustomerName from(final String value) {
-        return new CustomerName(value);
+    public static MemberName from(final String value) {
+        return new MemberName(value);
     }
 
     private void validate(final String value) {

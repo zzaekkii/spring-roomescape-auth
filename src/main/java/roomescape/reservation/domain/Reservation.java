@@ -1,6 +1,7 @@
 package roomescape.reservation.domain;
 
 import lombok.Getter;
+import roomescape.member.domain.Member;
 import roomescape.reservation.domain.exception.ReservationCancellationException;
 import roomescape.reservation.domain.exception.ReservationModificationException;
 import roomescape.reservationtime.domain.ReservationTime;
@@ -13,23 +14,23 @@ import java.time.LocalDateTime;
 public class Reservation {
 
     private final Long id;
-    private final CustomerName customerName;
+    private final Member member;
     private final LocalDate date;
     private final ReservationTime time;
     private final Theme theme;
 
-    private Reservation(final Long id, final CustomerName customerName, final LocalDate date, final ReservationTime time, final Theme theme) {
-        validateRequiredValues(date, time);
+    private Reservation(final Long id, final Member member, final LocalDate date, final ReservationTime time, final Theme theme) {
+        validateRequiredValues(member, date, time);
 
         this.id = id;
-        this.customerName = customerName;
+        this.member = member;
         this.date = date;
         this.time = time;
         this.theme = theme;
     }
 
     public static Reservation create(
-            final String name,
+            final Member member,
             final LocalDate date,
             final ReservationTime reservationTime,
             final Theme theme,
@@ -37,7 +38,7 @@ public class Reservation {
     ) {
         final Reservation reservation = new Reservation(
                 null,
-                CustomerName.from(name),
+                member,
                 date,
                 reservationTime,
                 theme
@@ -49,13 +50,13 @@ public class Reservation {
 
     public static Reservation of(
             final Long id,
-            final String name,
+            final Member member,
             final LocalDate date,
             final ReservationTime time,
             final Theme theme) {
         return new Reservation(
                 id,
-                CustomerName.from(name),
+                member,
                 date,
                 time,
                 theme
@@ -69,7 +70,7 @@ public class Reservation {
     ) {
         final Reservation changed = new Reservation(
                 id,
-                customerName,
+                member,
                 date,
                 time,
                 theme
@@ -79,8 +80,8 @@ public class Reservation {
         return changed;
     }
 
-    public String getCustomerName() {
-        return customerName.getName();
+    public String getMemberName() {
+        return member.getName();
     }
 
     public void validateCancelableByCustomer(final LocalDate today) {
@@ -99,7 +100,11 @@ public class Reservation {
         return today.isBefore(date);
     }
 
-    private void validateRequiredValues(final LocalDate date, final ReservationTime time) {
+    private void validateRequiredValues(final Member member, final LocalDate date, final ReservationTime time) {
+        if (member == null) {
+            throw new IllegalArgumentException("예약자를 입력해야 합니다.");
+        }
+
         if (date == null) {
             throw new IllegalArgumentException("예약일을 입력해야 합니다.");
         }
