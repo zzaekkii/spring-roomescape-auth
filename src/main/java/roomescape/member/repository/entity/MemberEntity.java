@@ -4,6 +4,7 @@ public record MemberEntity(
         Long id,
         String name,
         String email,
-        String password
+        String password,
+        String role
 ) {
 }
