@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
+import roomescape.auth.exception.UnauthorizedException;
 import roomescape.member.domain.Member;
 import roomescape.member.domain.exception.MemberNotFoundException;
 import roomescape.member.repository.MemberRepository;
@@ -60,8 +61,8 @@ public class ReservationService {
         return reservationRepository.findReservationTimeStatusesByDateAndThemeId(date, themeId);
     }
 
-    public ReservationResponse create(final ReservationCreateRequest data) {
-        final Member member = getMember(data.memberId());
+    public ReservationResponse create(final Long memberId, final ReservationCreateRequest data) {
+        final Member member = getMember(memberId);
         final ReservationTime reservationTime = getReservationTime(data.timeId());
         final Theme theme = getTheme(data.themeId());
 
@@ -78,8 +79,9 @@ public class ReservationService {
         return ReservationResponse.from(savedReservation);
     }
 
-    public ReservationResponse updateByCustomer(final Long reservationId, final ReservationUpdateRequest data) {
+    public ReservationResponse updateByCustomer(final Long memberId, final Long reservationId, final ReservationUpdateRequest data) {
         final Reservation originReservation = getReservation(reservationId);
+        validateOwner(originReservation, memberId);
         originReservation.validateModifiableByCustomer(LocalDate.now(clock));
 
         return updateSchedule(data, originReservation);
@@ -91,9 +93,10 @@ public class ReservationService {
         return updateSchedule(data, originReservation);
     }
 
-    public void cancel(final Long reservationId) {
+    public void cancel(final Long memberId, final Long reservationId) {
         final Reservation reservation = getReservation(reservationId);
 
+        validateOwner(reservation, memberId);
         reservation.validateCancelableByCustomer(LocalDate.now(clock));
 
         deleteReservation(reservationId);
@@ -180,5 +183,11 @@ public class ReservationService {
     private Member getMember(final Long memberId) {
         return memberRepository.findById(memberId)
                 .orElseThrow(MemberNotFoundException::new);
+    }
+
+    private void validateOwner(final Reservation reservation, final Long memberId) {
+        if (!reservation.isOwnedBy(memberId)) {
+            throw new UnauthorizedException("본인의 예약만 처리할 수 있습니다.");
+        }
     }
 }

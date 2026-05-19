@@ -5,8 +5,6 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 
 public record ReservationCreateRequest(
-        @NotNull(message = "회원을 선택해야 합니다.")
-        Long memberId,
         @NotNull(message = "예약일을 입력해야 합니다.")
         LocalDate date,
         @NotNull(message = "예약 시간을 선택해야 합니다.")

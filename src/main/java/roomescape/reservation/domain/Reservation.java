@@ -84,6 +84,10 @@ public class Reservation {
         return member.getName();
     }
 
+    public boolean isOwnedBy(final Long memberId) {
+        return this.member.getId().equals(memberId);
+    }
+
     public void validateCancelableByCustomer(final LocalDate today) {
         if (!isBeforeReservationDate(today)) {
             throw new ReservationCancellationException();
