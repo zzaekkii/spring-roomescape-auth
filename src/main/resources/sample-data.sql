@@ -53,6 +53,10 @@ INSERT INTO theme (name, description, thumbnail_url) VALUES (
     '/images/theme_pirate.png'
 );
 
+-- 샘플 사용자
+INSERT INTO member (name, email, password) VALUES ('홍길동', 'hong@example.com', 'password');
+INSERT INTO member (name, email, password) VALUES ('김철수', 'kim@example.com', 'password');
+
 -- 샘플 예약 (오늘 날짜 기준 미래 날짜를 고정값으로 넣기 어려우므로 과거 기준 참고용)
 -- 실제 운영 시 날짜를 조정하거나 삭제하세요.
 INSERT INTO reservation (name, date, time_id, theme_id) VALUES ('홍길동', DATEADD('DAY', 1, CURRENT_DATE), 1, 1);
