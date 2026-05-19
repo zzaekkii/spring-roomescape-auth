@@ -280,6 +280,23 @@ main { padding: 48px 0 100px; }
   width: 3px; height: 3px; border-radius: 50%; background: var(--accent);
 }
 
+.roomEscapeCafe-section { margin-top: 18px; }
+.roomEscapeCafe-grid { display: grid; gap: 8px; margin-top: 8px; }
+.roomEscapeCafe-option {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  padding: 10px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: all var(--tr);
+}
+.roomEscapeCafe-option:hover { border-color: var(--border-hover); color: var(--text); }
+.roomEscapeCafe-option.selected { border-color: var(--accent); color: var(--text); box-shadow: 0 0 0 1px var(--accent); }
+
 /* === Theme Grid (2-col) === */
 .theme-grid2 {
   display: grid;
@@ -605,4 +622,3 @@ main { padding: 48px 0 100px; }
   .modal-edit { width: 100%; }
   .edit-fixed-info { flex-direction: column; gap: 12px; }
 }
-

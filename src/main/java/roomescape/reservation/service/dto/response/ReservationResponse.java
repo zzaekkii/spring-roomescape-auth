@@ -2,6 +2,7 @@ package roomescape.reservation.service.dto.response;
 
 import roomescape.reservation.domain.Reservation;
 import roomescape.reservationtime.service.dto.response.ReservationTimeResponse;
+import roomescape.roomescapecafe.service.dto.response.RoomEscapeCafeResponse;
 import roomescape.theme.service.dto.response.ThemeResponse;
 
 import java.time.LocalDate;
@@ -11,7 +12,8 @@ public record ReservationResponse(
         String name,
         LocalDate date,
         ReservationTimeResponse time,
-        ThemeResponse theme
+        ThemeResponse theme,
+        RoomEscapeCafeResponse roomEscapeCafe
 ) {
 
     public static ReservationResponse from(final Reservation reservation) {
@@ -20,7 +22,8 @@ public record ReservationResponse(
                 reservation.getMemberName(),
                 reservation.getDate(),
                 ReservationTimeResponse.from(reservation.getTime()),
-                ThemeResponse.from(reservation.getTheme())
+                ThemeResponse.from(reservation.getTheme()),
+                RoomEscapeCafeResponse.from(reservation.getRoomEscapeCafe())
         );
     }
 }

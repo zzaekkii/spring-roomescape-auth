@@ -2,6 +2,10 @@
 
 const $ = id => document.getElementById(id);
 
+const adminState = {
+  roomEscapeCafes: [],
+};
+
 function showToast(msg, type = 'default') {
   const el = document.createElement('div');
   el.className = `toast ${type}`;
@@ -79,19 +83,30 @@ function switchPanel(panel) {
 // ===== Reservations =====
 async function loadReservations() {
   const tbody = $('admin-reservations-tbody');
-  tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-muted)">불러오는 중...</td></tr>`;
-  const data = await api.get('/admin/reservations');
+  tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-muted)">불러오는 중...</td></tr>`;
+  const roomEscapeCafeId = $('admin-roomEscapeCafe-filter').value;
+  const url = roomEscapeCafeId ? `/admin/reservations?roomEscapeCafeId=${roomEscapeCafeId}` : '/admin/reservations';
+  const data = await api.get(url);
   if (!data.length) {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-muted)">예약 내역이 없습니다.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-muted)">예약 내역이 없습니다.</td></tr>`;
     return;
   }
   tbody.innerHTML = data.map(r => `
     <tr>
       <td>${r.id}</td><td>${r.name}</td><td>${r.date}</td>
-      <td>${formatTime(r.time.startAt)}</td><td>${r.theme.name}</td>
+      <td>${formatTime(r.time.startAt)}</td><td>${r.roomEscapeCafe.name}</td><td>${r.theme.name}</td>
       <td><button class="btn-delete" onclick="deleteReservation(${r.id})">삭제</button></td>
     </tr>
   `).join('');
+}
+
+async function loadRoomEscapeCafes() {
+  const options = await api.get('/reservations/date-and-theme');
+  adminState.roomEscapeCafes = options.roomEscapeCafes || [];
+  const select = $('admin-roomEscapeCafe-filter');
+  select.innerHTML = `<option value="">전체 방탈출 카페</option>` + adminState.roomEscapeCafes.map(roomEscapeCafe =>
+    `<option value="${roomEscapeCafe.id}">${roomEscapeCafe.name}</option>`
+  ).join('');
 }
 
 async function deleteReservation(id) {
@@ -196,8 +211,9 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.admin-tab').forEach(btn => {
     btn.addEventListener('click', () => switchPanel(btn.dataset.panel));
   });
+  $('admin-roomEscapeCafe-filter').addEventListener('change', loadReservations);
   $('btn-add-time').addEventListener('click', addTime);
   $('btn-add-theme').addEventListener('click', addTheme);
 
-  loadReservations(); // 기본으로 예약 목록 로드
+  loadRoomEscapeCafes().finally(loadReservations); // 기본으로 예약 목록 로드
 });

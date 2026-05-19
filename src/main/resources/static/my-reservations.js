@@ -72,29 +72,26 @@ function toISODate(date) {
 
 // ===== 예약 조회 =====
 async function searchReservations() {
-  const name = $('search-name').value.trim();
-  if (!name) { showToast('예약자 이름을 입력해주세요.', 'error'); return; }
-
   const btn = $('search-btn');
   btn.disabled = true; btn.textContent = '조회 중...';
 
   try {
-    const data = await api.get(`/reservations?customerName=${encodeURIComponent(name)}`);
-    renderReservationList(data, name);
+    const data = await api.get('/reservations/mine');
+    renderReservationList(data);
     $('search-results').style.display = 'block';
   } catch (e) {
     showToast('조회에 실패했습니다. ' + e.message, 'error');
   } finally {
-    btn.disabled = false; btn.textContent = '조회';
+    btn.disabled = false; btn.textContent = '새로고침';
   }
 }
 
-function renderReservationList(reservations, name) {
-  $('search-results-label').textContent = `"${name}" 예약 내역 ${reservations.length}건`;
+function renderReservationList(reservations) {
+  $('search-results-label').textContent = `내 예약 내역 ${reservations.length}건`;
   const tbody = $('my-reservations-tbody');
 
   if (reservations.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--text-muted)">예약 내역이 없습니다.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text-muted)">예약 내역이 없습니다.</td></tr>`;
     return;
   }
 
@@ -103,11 +100,12 @@ function renderReservationList(reservations, name) {
       <td>${r.id}</td>
       <td>${r.date}</td>
       <td>${formatTime(r.time.startAt)}</td>
+      <td>${r.roomEscapeCafe.name}</td>
       <td>${r.theme.name}</td>
       <td>
         <div style="display:flex;gap:8px;justify-content:flex-end">
           <button class="btn-edit"
-            onclick="openEditModal(${r.id},'${escStr(r.name)}','${r.date}',${r.time.id},'${escStr(r.theme.name)}',${r.theme.id})">
+            onclick="openEditModal(${r.id},'${escStr(r.name)}','${r.date}',${r.time.id},'${escStr(r.theme.name)}',${r.theme.id},'${escStr(r.roomEscapeCafe.name)}',${r.roomEscapeCafe.id})">
             변경
           </button>
           <button class="btn-delete" onclick="cancelReservation(${r.id})">취소</button>
@@ -128,8 +126,7 @@ async function cancelReservation(id) {
   try {
     await api.del(`/reservations/${id}`);
     showToast('예약이 취소되었습니다.', 'success');
-    const name = $('search-name').value.trim();
-    if (name) searchReservations();
+    searchReservations();
   } catch (e) {
     showToast('취소에 실패했습니다. ' + e.message, 'error');
   }
@@ -143,6 +140,7 @@ async function cancelReservation(id) {
 const editState = {
   reservationId: null,
   themeId: null,
+  roomEscapeCafeId: null,
   currentTimeId: null,        // 현재 예약 시간 id (CURRENT 표시용)
   availableDates: [],          // /reservations/date-and-theme 에서 받아온 날짜 목록
   selectedDate: null,
@@ -151,15 +149,17 @@ const editState = {
   calMonth: new Date().getMonth(),
 };
 
-async function openEditModal(reservationId, name, date, timeId, themeName, themeId) {
+async function openEditModal(reservationId, name, date, timeId, themeName, themeId, roomEscapeCafeName, roomEscapeCafeId) {
   editState.reservationId = reservationId;
   editState.themeId = themeId;
+  editState.roomEscapeCafeId = roomEscapeCafeId;
   editState.currentTimeId = timeId;
   editState.selectedDate = null;
   editState.selectedTimeId = null;
 
   $('edit-modal-name').textContent = name;
   $('edit-modal-theme').textContent = themeName;
+  $('edit-modal-roomEscapeCafe').textContent = roomEscapeCafeName;
   $('confirm-edit-btn').disabled = true;
   $('edit-time-slots-wrap').innerHTML = `<div class="empty-state edit-empty-state">날짜를 먼저 선택하세요.</div>`;
 
@@ -247,7 +247,7 @@ async function loadEditTimeSlots(date) {
 
   try {
     const times = await api.get(
-      `/reservations/available-times?date=${date}&themeId=${editState.themeId}`
+      `/reservations/available-times?date=${date}&themeId=${editState.themeId}&roomEscapeCafeId=${editState.roomEscapeCafeId}`
     );
 
     if (!times || times.length === 0) {
@@ -308,8 +308,7 @@ async function submitEdit() {
     });
     closeEditModal();
     showToast('예약이 변경되었습니다! ✅', 'success');
-    const name = $('search-name').value.trim();
-    if (name) searchReservations();
+    searchReservations();
   } catch (e) {
     showToast('변경에 실패했습니다. ' + e.message, 'error');
   } finally {
@@ -321,7 +320,7 @@ async function submitEdit() {
 document.addEventListener('DOMContentLoaded', () => {
   // 검색
   $('search-btn').addEventListener('click', searchReservations);
-  $('search-name').addEventListener('keydown', e => { if (e.key === 'Enter') searchReservations(); });
+  searchReservations();
 
   // 변경 모달 달력 네비게이션
   $('edit-cal-prev').addEventListener('click', () => {

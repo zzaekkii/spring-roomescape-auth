@@ -2,11 +2,14 @@
 
 const state = {
   selectedDate: null,
+  selectedRoomEscapeCafeId: null,
+  selectedRoomEscapeCafeName: null,
   selectedThemeId: null,
   selectedThemeName: null,
   selectedTimeId: null,
   selectedTimeLabel: null,
   themes: [],
+  roomEscapeCafes: [],
   availableDates: [],
   currentCalendarYear: new Date().getFullYear(),
   currentCalendarMonth: new Date().getMonth(),
@@ -122,7 +125,9 @@ async function loadThemes() {
     const opts = await api.get('/reservations/date-and-theme');
     state.availableDates = opts.dates || [];
     state.themes = opts.themes || [];
+    state.roomEscapeCafes = opts.roomEscapeCafes || [];
     renderCalendar();
+    renderRoomEscapeCafes();
     renderThemes();
   } catch (e) {
     showToast('테마 정보를 불러오지 못했습니다. ' + e.message, 'error');
@@ -160,13 +165,36 @@ function selectTheme(theme, card) {
   loadTimeSlots();
 }
 
+// ===== RoomEscapeCafes =====
+function renderRoomEscapeCafes() {
+  const list = $('roomEscapeCafe-list');
+  list.innerHTML = '';
+  state.roomEscapeCafes.forEach(roomEscapeCafe => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'roomEscapeCafe-option' + (state.selectedRoomEscapeCafeId === roomEscapeCafe.id ? ' selected' : '');
+    btn.textContent = roomEscapeCafe.name;
+    btn.addEventListener('click', () => selectRoomEscapeCafe(roomEscapeCafe, btn));
+    list.appendChild(btn);
+  });
+}
+
+function selectRoomEscapeCafe(roomEscapeCafe, btn) {
+  state.selectedRoomEscapeCafeId = roomEscapeCafe.id;
+  state.selectedRoomEscapeCafeName = roomEscapeCafe.name;
+  document.querySelectorAll('.roomEscapeCafe-option').forEach(el => el.classList.remove('selected'));
+  btn.classList.add('selected');
+  updateCTAInfo();
+  loadTimeSlots();
+}
+
 // ===== Time Slots =====
 async function loadTimeSlots() {
-  const { selectedDate, selectedThemeId } = state;
+  const { selectedDate, selectedRoomEscapeCafeId, selectedThemeId } = state;
   const container = $('time-slots-container');
 
-  if (!selectedDate || !selectedThemeId) {
-    container.innerHTML = `<div class="empty-state"><p>🗓</p><p>날짜와 테마를<br>먼저 선택해주세요.</p></div>`;
+  if (!selectedDate || !selectedRoomEscapeCafeId || !selectedThemeId) {
+    container.innerHTML = `<div class="empty-state"><p>🗓</p><p>날짜, 방탈출 카페, 테마를<br>먼저 선택해주세요.</p></div>`;
     return;
   }
 
@@ -174,7 +202,7 @@ async function loadTimeSlots() {
     `<div class="skeleton" style="height:60px"></div>`).join('')}</div>`;
 
   try {
-    const times = await api.get(`/reservations/available-times?date=${selectedDate}&themeId=${selectedThemeId}`);
+    const times = await api.get(`/reservations/available-times?date=${selectedDate}&themeId=${selectedThemeId}&roomEscapeCafeId=${selectedRoomEscapeCafeId}`);
     state.selectedTimeId = null;
     state.selectedTimeLabel = null;
 
@@ -223,32 +251,30 @@ function updateCTAInfo() {
   const btn  = $('book-btn');
   const parts = [];
   if (state.selectedDate)      parts.push(`<strong>${state.selectedDate}</strong>`);
+  if (state.selectedRoomEscapeCafeName) parts.push(`<strong>${state.selectedRoomEscapeCafeName}</strong>`);
   if (state.selectedThemeName) parts.push(`<strong>${state.selectedThemeName}</strong>`);
   if (state.selectedTimeLabel) parts.push(`<strong>${state.selectedTimeLabel}</strong>`);
-  info.innerHTML = parts.length ? parts.join(' &mdash; ') : '날짜, 테마, 시간을 선택하세요.';
-  btn.disabled = !(state.selectedDate && state.selectedThemeId && state.selectedTimeId);
+  info.innerHTML = parts.length ? parts.join(' &mdash; ') : '날짜, 방탈출 카페, 테마, 시간을 선택하세요.';
+  btn.disabled = !(state.selectedDate && state.selectedRoomEscapeCafeId && state.selectedThemeId && state.selectedTimeId);
 }
 
 // ===== Booking Modal =====
 function openModal() {
   $('modal-date').textContent  = state.selectedDate;
+  $('modal-roomEscapeCafe').textContent = state.selectedRoomEscapeCafeName;
   $('modal-theme').textContent = state.selectedThemeName;
   $('modal-time').textContent  = state.selectedTimeLabel;
-  $('booking-name').value = '';
   $('booking-modal').classList.add('open');
-  setTimeout(() => $('booking-name').focus(), 50);
 }
 function closeModal() { $('booking-modal').classList.remove('open'); }
 
 async function submitBooking() {
-  const name = $('booking-name').value.trim();
-  if (!name) { showToast('이름을 입력해주세요.', 'error'); return; }
-
   const btn = $('confirm-booking-btn');
   btn.disabled = true; btn.textContent = '예약 중...';
   try {
     await api.post('/reservations', {
-      name, date: state.selectedDate,
+      roomEscapeCafeId: state.selectedRoomEscapeCafeId,
+      date: state.selectedDate,
       timeId: state.selectedTimeId, themeId: state.selectedThemeId,
     });
     closeModal();

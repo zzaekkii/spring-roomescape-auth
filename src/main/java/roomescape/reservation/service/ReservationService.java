@@ -10,6 +10,10 @@ import roomescape.member.domain.exception.MemberNotFoundException;
 import roomescape.member.repository.MemberRepository;
 import roomescape.reservation.domain.Reservation;
 import roomescape.reservationtime.domain.ReservationTime;
+import roomescape.roomescapecafe.domain.RoomEscapeCafe;
+import roomescape.roomescapecafe.domain.exception.RoomEscapeCafeNotFoundException;
+import roomescape.roomescapecafe.repository.RoomEscapeCafeRepository;
+import roomescape.roomescapecafe.service.dto.response.RoomEscapeCafeResponse;
 import roomescape.theme.domain.Theme;
 import roomescape.reservation.domain.exception.ReservationAlreadyExistsException;
 import roomescape.reservation.domain.exception.ReservationNotFoundException;
@@ -38,9 +42,10 @@ public class ReservationService {
     private static final int RESERVABLE_DAYS_RANGE = 14;
 
     private final ReservationRepository reservationRepository;
+    private final MemberRepository memberRepository;
     private final ReservationTimeRepository reservationTimeRepository;
     private final ThemeRepository themeRepository;
-    private final MemberRepository memberRepository;
+    private final RoomEscapeCafeRepository roomEscapeCafeRepository;
     private final Clock clock;
 
     public List<ReservationResponse> getAllReservations() {
@@ -57,20 +62,33 @@ public class ReservationService {
                 .toList();
     }
 
-    public List<ReservationTimesWithStatus> getReservationTimeStatuses(final LocalDate date, final Long themeId) {
-        return reservationRepository.findReservationTimeStatusesByDateAndThemeId(date, themeId);
+    public List<ReservationResponse> getAllReservationsByRoomEscapeCafe(final Long roomEscapeCafeId) {
+        getRoomEscapeCafe(roomEscapeCafeId);
+
+        return reservationRepository.findAllByRoomEscapeCafeId(roomEscapeCafeId)
+                .stream()
+                .map(ReservationResponse::from)
+                .toList();
+    }
+
+    public List<ReservationTimesWithStatus> getReservationTimeStatuses(final LocalDate date, final Long themeId, final Long roomEscapeCafeId) {
+        getRoomEscapeCafe(roomEscapeCafeId);
+
+        return reservationRepository.findReservationTimeStatusesByDateAndThemeIdAndRoomEscapeCafeId(date, themeId, roomEscapeCafeId);
     }
 
     public ReservationResponse create(final Long memberId, final ReservationCreateRequest data) {
         final Member member = getMember(memberId);
         final ReservationTime reservationTime = getReservationTime(data.timeId());
         final Theme theme = getTheme(data.themeId());
+        final RoomEscapeCafe roomEscapeCafe = getRoomEscapeCafe(data.roomEscapeCafeId());
 
         final Reservation reservation = Reservation.create(
                 member,
                 data.date(),
                 reservationTime,
                 theme,
+                roomEscapeCafe,
                 LocalDateTime.now(clock)
         );
 
@@ -115,7 +133,12 @@ public class ReservationService {
                 .map(ThemeResponse::from)
                 .toList();
 
-        return new ReservationOptionResponse(dates, themes);
+        List<RoomEscapeCafeResponse> roomEscapeCafes = roomEscapeCafeRepository.findAll()
+                .stream()
+                .map(RoomEscapeCafeResponse::from)
+                .toList();
+
+        return new ReservationOptionResponse(dates, themes, roomEscapeCafes);
     }
 
     private ReservationResponse updateSchedule(final ReservationUpdateRequest data, final Reservation originReservation) {
@@ -170,6 +193,11 @@ public class ReservationService {
                 .orElseThrow(ReservationNotFoundException::new);
     }
 
+    private Member getMember(final Long memberId) {
+        return memberRepository.findById(memberId)
+                .orElseThrow(MemberNotFoundException::new);
+    }
+
     private ReservationTime getReservationTime(final Long reservationTimeId) {
         return reservationTimeRepository.findById(reservationTimeId)
                 .orElseThrow(ReservationTimeNotFoundException::new);
@@ -180,9 +208,9 @@ public class ReservationService {
                 .orElseThrow(ThemeNotFoundException::new);
     }
 
-    private Member getMember(final Long memberId) {
-        return memberRepository.findById(memberId)
-                .orElseThrow(MemberNotFoundException::new);
+    private RoomEscapeCafe getRoomEscapeCafe(final Long roomEscapeCafeId) {
+        return roomEscapeCafeRepository.findById(roomEscapeCafeId)
+                .orElseThrow(RoomEscapeCafeNotFoundException::new);
     }
 
     private void validateOwner(final Reservation reservation, final Long memberId) {

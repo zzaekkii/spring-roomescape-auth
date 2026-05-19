@@ -43,11 +43,21 @@
 
     <!-- Panel: Reservations -->
     <div class="admin-panel active" id="admin-panel-reservations" role="tabpanel">
+      <div class="admin-form-card">
+        <div class="admin-form-row">
+          <div class="admin-form-group">
+            <label class="form-label" for="admin-roomEscapeCafe-filter">방탈출 카페</label>
+            <select class="form-input" id="admin-roomEscapeCafe-filter">
+              <option value="">전체 방탈출 카페</option>
+            </select>
+          </div>
+        </div>
+      </div>
       <div class="data-table-wrap">
         <table class="data-table" aria-label="예약 목록">
-          <thead><tr><th>#</th><th>예약자</th><th>날짜</th><th>시간</th><th>테마</th><th></th></tr></thead>
+          <thead><tr><th>#</th><th>예약자</th><th>날짜</th><th>시간</th><th>방탈출 카페</th><th>테마</th><th></th></tr></thead>
           <tbody id="admin-reservations-tbody">
-            <tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text-muted)">불러오는 중...</td></tr>
+            <tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text-muted)">불러오는 중...</td></tr>
           </tbody>
         </table>
       </div>

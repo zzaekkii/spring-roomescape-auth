@@ -5,6 +5,7 @@ import roomescape.member.domain.Member;
 import roomescape.reservation.domain.exception.ReservationCancellationException;
 import roomescape.reservation.domain.exception.ReservationModificationException;
 import roomescape.reservationtime.domain.ReservationTime;
+import roomescape.roomescapecafe.domain.RoomEscapeCafe;
 import roomescape.theme.domain.Theme;
 
 import java.time.LocalDate;
@@ -18,15 +19,24 @@ public class Reservation {
     private final LocalDate date;
     private final ReservationTime time;
     private final Theme theme;
+    private final RoomEscapeCafe roomEscapeCafe;
 
-    private Reservation(final Long id, final Member member, final LocalDate date, final ReservationTime time, final Theme theme) {
-        validateRequiredValues(member, date, time);
+    private Reservation(
+            final Long id,
+            final Member member,
+            final LocalDate date,
+            final ReservationTime time,
+            final Theme theme,
+            final RoomEscapeCafe roomEscapeCafe
+    ) {
+        validateRequiredValues(member, date, time, roomEscapeCafe);
 
         this.id = id;
         this.member = member;
         this.date = date;
         this.time = time;
         this.theme = theme;
+        this.roomEscapeCafe = roomEscapeCafe;
     }
 
     public static Reservation create(
@@ -34,6 +44,7 @@ public class Reservation {
             final LocalDate date,
             final ReservationTime reservationTime,
             final Theme theme,
+            final RoomEscapeCafe roomEscapeCafe,
             final LocalDateTime now
     ) {
         final Reservation reservation = new Reservation(
@@ -41,7 +52,8 @@ public class Reservation {
                 member,
                 date,
                 reservationTime,
-                theme
+                theme,
+                roomEscapeCafe
         );
 
         reservation.validateNotPast(now);
@@ -53,13 +65,16 @@ public class Reservation {
             final Member member,
             final LocalDate date,
             final ReservationTime time,
-            final Theme theme) {
+            final Theme theme,
+            final RoomEscapeCafe roomEscapeCafe
+    ) {
         return new Reservation(
                 id,
                 member,
                 date,
                 time,
-                theme
+                theme,
+                roomEscapeCafe
         );
     }
 
@@ -73,7 +88,8 @@ public class Reservation {
                 member,
                 date,
                 time,
-                theme
+                theme,
+                roomEscapeCafe
         );
 
         changed.validateNotPast(now);
@@ -104,7 +120,7 @@ public class Reservation {
         return today.isBefore(date);
     }
 
-    private void validateRequiredValues(final Member member, final LocalDate date, final ReservationTime time) {
+    private void validateRequiredValues(final Member member, final LocalDate date, final ReservationTime time, final RoomEscapeCafe roomEscapeCafe) {
         if (member == null) {
             throw new IllegalArgumentException("예약자를 입력해야 합니다.");
         }
@@ -115,6 +131,10 @@ public class Reservation {
 
         if (time == null) {
             throw new IllegalArgumentException("예약 시간을 입력해야 합니다.");
+        }
+
+        if (roomEscapeCafe == null) {
+            throw new IllegalArgumentException("방탈출 카페를 선택해야 합니다.");
         }
     }
 

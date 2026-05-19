@@ -18,9 +18,19 @@ public class AdminReservationController {
     private final ReservationService reservationService;
 
     @GetMapping
-    public ResponseEntity<List<ReservationResponse>> getAllReservations() {
-        final List<ReservationResponse> results = reservationService.getAllReservations();
+    public ResponseEntity<List<ReservationResponse>> getAllReservations(
+            @RequestParam(value = "roomEscapeCafeId", required = false) Long roomEscapeCafeId
+    ) {
+        final List<ReservationResponse> results = getReservations(roomEscapeCafeId);
         return ResponseEntity.ok(results);
+    }
+
+    private List<ReservationResponse> getReservations(final Long roomEscapeCafeId) {
+        if (roomEscapeCafeId == null) {
+            return reservationService.getAllReservations();
+        }
+
+        return reservationService.getAllReservationsByRoomEscapeCafe(roomEscapeCafeId);
     }
 
     @PutMapping("/{reservation-id}")

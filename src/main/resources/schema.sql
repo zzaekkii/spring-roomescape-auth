@@ -24,16 +24,25 @@ CREATE TABLE IF NOT EXISTS member
     PRIMARY KEY (id)
     );
 
+CREATE TABLE IF NOT EXISTS room_escape_cafe
+(
+    id   BIGINT       NOT NULL AUTO_INCREMENT,
+    name VARCHAR(255) NOT NULL,
+    PRIMARY KEY (id)
+    );
+
 CREATE TABLE IF NOT EXISTS reservation
 (
     id      BIGINT       NOT NULL AUTO_INCREMENT,
     member_id BIGINT NOT NULL,
+    room_escape_cafe_id BIGINT NOT NULL,
     date    DATE NOT NULL,
     time_id BIGINT NOT NULL,
     theme_id BIGINT NOT NULL,
     PRIMARY KEY (id),
     FOREIGN KEY (member_id) REFERENCES member (id),
+    FOREIGN KEY (room_escape_cafe_id) REFERENCES room_escape_cafe (id),
     FOREIGN KEY (time_id) REFERENCES reservation_time (id),
     FOREIGN KEY (theme_id) REFERENCES theme (id),
-    CONSTRAINT unique_reservation_date_time_theme UNIQUE (date, time_id, theme_id)
+    CONSTRAINT unique_reservation_room_escape_cafe_date_time_theme UNIQUE (room_escape_cafe_id, date, time_id, theme_id)
     );

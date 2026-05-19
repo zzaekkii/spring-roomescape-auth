@@ -30,19 +30,12 @@
 
     <div class="my-res-header">
       <h1 class="my-res-title">내 예약</h1>
-      <p class="my-res-sub">예약자 이름으로 예약 내역을 확인하고 변경 또는 취소할 수 있습니다.</p>
+      <p class="my-res-sub">로그인한 계정의 예약 내역을 확인하고 변경 또는 취소할 수 있습니다.</p>
     </div>
 
-    <!-- 검색 폼 -->
+    <!-- 새로고침 -->
     <div class="my-res-search-wrap">
-      <input
-        class="form-input my-res-search-input"
-        type="text"
-        id="search-name"
-        placeholder="예약자 이름 입력 (예: 홍길동)"
-        autocomplete="name"
-      />
-      <button class="btn-primary my-res-search-btn" id="search-btn">조회</button>
+      <button class="btn-primary my-res-search-btn" id="search-btn">새로고침</button>
     </div>
 
     <!-- 검색 결과 -->
@@ -57,6 +50,7 @@
               <th>#</th>
               <th>날짜</th>
               <th>시간</th>
+              <th>방탈출 카페</th>
               <th>테마</th>
               <th></th>
             </tr>
@@ -87,6 +81,10 @@
         <div class="edit-fixed-item">
           <span class="summary-item-label">테마</span>
           <span class="summary-item-value" id="edit-modal-theme">—</span>
+        </div>
+        <div class="edit-fixed-item">
+          <span class="summary-item-label">방탈출 카페</span>
+          <span class="summary-item-value" id="edit-modal-roomEscapeCafe">—</span>
         </div>
       </div>
 

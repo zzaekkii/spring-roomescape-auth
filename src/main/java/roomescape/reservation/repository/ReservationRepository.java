@@ -19,7 +19,9 @@ public interface ReservationRepository {
 
     boolean deleteById(Long reservationId);
 
-    List<ReservationTimesWithStatus> findReservationTimeStatusesByDateAndThemeId(LocalDate date, Long themeId);
+    List<ReservationTimesWithStatus> findReservationTimeStatusesByDateAndThemeIdAndRoomEscapeCafeId(LocalDate date, Long themeId, Long roomEscapeCafeId);
 
     List<Reservation> findAllByMemberId(Long memberId);
+
+    List<Reservation> findAllByRoomEscapeCafeId(Long roomEscapeCafeId);
 }

@@ -34,9 +34,10 @@ public class ReservationController {
     @GetMapping("/available-times")
     public ResponseEntity<List<ReservationTimesWithStatus>> getReservationTimeStatuses(
             @RequestParam(value = "date") LocalDate date,
-            @RequestParam(value = "themeId") Long themeId
+            @RequestParam(value = "themeId") Long themeId,
+            @RequestParam(value = "roomEscapeCafeId") Long roomEscapeCafeId
     ) {
-        final List<ReservationTimesWithStatus> results = reservationService.getReservationTimeStatuses(date, themeId);
+        final List<ReservationTimesWithStatus> results = reservationService.getReservationTimeStatuses(date, themeId, roomEscapeCafeId);
         return ResponseEntity.ok(results);
     }
 

@@ -7,8 +7,10 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import roomescape.member.domain.Member;
+import roomescape.member.domain.MemberRole;
 import roomescape.reservation.domain.Reservation;
 import roomescape.reservationtime.domain.ReservationTime;
+import roomescape.roomescapecafe.domain.RoomEscapeCafe;
 import roomescape.theme.domain.Theme;
 import roomescape.reservation.repository.ReservationRepository;
 import roomescape.reservation.repository.dto.ReservationTimesWithStatus;
@@ -38,6 +40,9 @@ public class JdbcReservationRepository implements ReservationRepository {
                     m.name AS member_name,
                     m.email AS member_email,
                     m.password AS member_password,
+                    m.role AS member_role,
+                    r.room_escape_cafe_id AS room_escape_cafe_id,
+                    s.name AS room_escape_cafe_name,
                     r.date AS reservation_date,
                     r.theme_id AS theme_id,
                     t.id AS time_id,
@@ -47,6 +52,7 @@ public class JdbcReservationRepository implements ReservationRepository {
                     h.thumbnail_url AS theme_thumbnail_url
                 FROM reservation r
                 JOIN member m ON r.member_id = m.id
+                JOIN room_escape_cafe s ON r.room_escape_cafe_id = s.id
                 JOIN reservation_time t ON r.time_id = t.id
                 JOIN theme h ON r.theme_id = h.id
                 ORDER BY r.id
@@ -66,6 +72,9 @@ public class JdbcReservationRepository implements ReservationRepository {
                     m.name AS member_name,
                     m.email AS member_email,
                     m.password AS member_password,
+                    m.role AS member_role,
+                    r.room_escape_cafe_id AS room_escape_cafe_id,
+                    s.name AS room_escape_cafe_name,
                     r.date AS reservation_date,
                     r.theme_id AS theme_id,
                     t.id AS time_id,
@@ -75,6 +84,7 @@ public class JdbcReservationRepository implements ReservationRepository {
                     h.thumbnail_url AS theme_thumbnail_url
                 FROM reservation r
                 JOIN member m ON r.member_id = m.id
+                JOIN room_escape_cafe s ON r.room_escape_cafe_id = s.id
                 JOIN reservation_time t ON r.time_id = t.id
                 JOIN theme h ON r.theme_id = h.id
                 WHERE r.member_id = ?
@@ -82,6 +92,39 @@ public class JdbcReservationRepository implements ReservationRepository {
                 """;
 
         return jdbcTemplate.query(sql, this::mapToDomain, memberId)
+                .stream()
+                .toList();
+    }
+
+    @Override
+    public List<Reservation> findAllByRoomEscapeCafeId(final Long roomEscapeCafeId) {
+        final String sql = """
+                SELECT
+                    r.id AS reservation_id,
+                    r.member_id AS member_id,
+                    m.name AS member_name,
+                    m.email AS member_email,
+                    m.password AS member_password,
+                    m.role AS member_role,
+                    r.room_escape_cafe_id AS room_escape_cafe_id,
+                    s.name AS room_escape_cafe_name,
+                    r.date AS reservation_date,
+                    r.theme_id AS theme_id,
+                    t.id AS time_id,
+                    t.start_at AS time_start_at,
+                    h.name AS theme_name,
+                    h.description AS theme_description,
+                    h.thumbnail_url AS theme_thumbnail_url
+                FROM reservation r
+                JOIN member m ON r.member_id = m.id
+                JOIN room_escape_cafe s ON r.room_escape_cafe_id = s.id
+                JOIN reservation_time t ON r.time_id = t.id
+                JOIN theme h ON r.theme_id = h.id
+                WHERE r.room_escape_cafe_id = ?
+                ORDER BY r.id
+                """;
+
+        return jdbcTemplate.query(sql, this::mapToDomain, roomEscapeCafeId)
                 .stream()
                 .toList();
     }
@@ -95,6 +138,9 @@ public class JdbcReservationRepository implements ReservationRepository {
                     m.name AS member_name,
                     m.email AS member_email,
                     m.password AS member_password,
+                    m.role AS member_role,
+                    r.room_escape_cafe_id AS room_escape_cafe_id,
+                    s.name AS room_escape_cafe_name,
                     r.date AS reservation_date,
                     r.theme_id AS theme_id,
                     t.id AS time_id,
@@ -104,6 +150,7 @@ public class JdbcReservationRepository implements ReservationRepository {
                     h.thumbnail_url AS theme_thumbnail_url
                 FROM reservation r
                 JOIN member m ON r.member_id = m.id
+                JOIN room_escape_cafe s ON r.room_escape_cafe_id = s.id
                 JOIN reservation_time t ON r.time_id = t.id
                 JOIN theme h ON r.theme_id = h.id
                 WHERE r.id = ?
@@ -127,7 +174,8 @@ public class JdbcReservationRepository implements ReservationRepository {
                 newReservation.getMember(),
                 newReservation.getDate(),
                 newReservation.getTime(),
-                newReservation.getTheme()
+                newReservation.getTheme(),
+                newReservation.getRoomEscapeCafe()
         );
     }
 
@@ -164,7 +212,11 @@ public class JdbcReservationRepository implements ReservationRepository {
     }
 
     @Override
-    public List<ReservationTimesWithStatus> findReservationTimeStatusesByDateAndThemeId(final LocalDate date, final Long themeId) {
+    public List<ReservationTimesWithStatus> findReservationTimeStatusesByDateAndThemeIdAndRoomEscapeCafeId(
+            final LocalDate date,
+            final Long themeId,
+            final Long roomEscapeCafeId
+    ) {
         final String sql = """
                 SELECT
                     rt.id,
@@ -178,6 +230,7 @@ public class JdbcReservationRepository implements ReservationRepository {
                     ON r.time_id = rt.id
                    AND r.date = ?
                    AND r.theme_id = ?
+                   AND r.room_escape_cafe_id = ?
                 ORDER BY rt.start_at;
                 """;
 
@@ -185,7 +238,8 @@ public class JdbcReservationRepository implements ReservationRepository {
                         sql,
                         this::mapToTimesWithStatus,
                         date,
-                        themeId
+                        themeId,
+                        roomEscapeCafeId
                 ).stream()
                 .toList();
     }
@@ -193,8 +247,8 @@ public class JdbcReservationRepository implements ReservationRepository {
 
     private long insertReservation(final ReservationEntity reservationEntity) {
         final String sql = """
-                INSERT INTO reservation (member_id, date, time_id, theme_id)
-                VALUES (?, ?, ?, ?)
+                INSERT INTO reservation (member_id, room_escape_cafe_id, date, time_id, theme_id)
+                VALUES (?, ?, ?, ?, ?)
                 """;
 
         final KeyHolder keyHolder = new GeneratedKeyHolder();
@@ -206,9 +260,10 @@ public class JdbcReservationRepository implements ReservationRepository {
             );
 
             preparedStatement.setLong(1, reservationEntity.memberId());
-            preparedStatement.setDate(2, reservationEntity.date());
-            preparedStatement.setLong(3, reservationEntity.timeId());
-            preparedStatement.setLong(4, reservationEntity.themeId());
+            preparedStatement.setLong(2, reservationEntity.roomEscapeCafeId());
+            preparedStatement.setDate(3, reservationEntity.date());
+            preparedStatement.setLong(4, reservationEntity.timeId());
+            preparedStatement.setLong(5, reservationEntity.themeId());
 
             return preparedStatement;
         }, keyHolder);
@@ -232,12 +287,18 @@ public class JdbcReservationRepository implements ReservationRepository {
                 resultSet.getLong("member_id"),
                 resultSet.getString("member_name"),
                 resultSet.getString("member_email"),
-                resultSet.getString("member_password")
+                resultSet.getString("member_password"),
+                MemberRole.valueOf(resultSet.getString("member_role"))
         );
 
         final ReservationTime reservationTime = ReservationTime.of(
                 resultSet.getLong("time_id"),
                 resultSet.getTime("time_start_at").toLocalTime()
+        );
+
+        final RoomEscapeCafe roomEscapeCafe = RoomEscapeCafe.of(
+                resultSet.getLong("room_escape_cafe_id"),
+                resultSet.getString("room_escape_cafe_name")
         );
 
         final Theme theme = Theme.of(
@@ -252,7 +313,8 @@ public class JdbcReservationRepository implements ReservationRepository {
                 member,
                 resultSet.getDate("reservation_date").toLocalDate(),
                 reservationTime,
-                theme
+                theme,
+                roomEscapeCafe
         );
     }
 
@@ -260,6 +322,7 @@ public class JdbcReservationRepository implements ReservationRepository {
         return new ReservationEntity(
                 reservation.getId(),
                 reservation.getMember().getId(),
+                reservation.getRoomEscapeCafe().getId(),
                 Date.valueOf(reservation.getDate()),
                 reservation.getTime().getId(),
                 reservation.getTheme().getId()
